@@ -13,8 +13,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = header.slice("Bearer ".length).trim();
 
   try {
-    const payload = verifyToken(token);
-    (req as any).user = payload;
+    req.user = verifyToken(token); // ✅ typed, no `as any`
     next();
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });

@@ -1,10 +1,5 @@
-import jwt, { Jwt } from "jsonwebtoken";
-import { get } from "node:http";
-
-type JwtUserPayload = {
-  userId: number;
-  email: string;
-};
+import jwt from "jsonwebtoken";
+import type { JwtUserPayload } from "../types/jwt";
 
 const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
@@ -17,5 +12,18 @@ export function signToken(payload: JwtUserPayload) {
 }
 
 export function verifyToken(token: string): JwtUserPayload {
-  return jwt.verify(token, getJwtSecret()) as JwtUserPayload;
+  const decoded = jwt.verify(token, getJwtSecret());
+
+  if (typeof decoded !== "object" || decoded === null) {
+    throw new Error("Invalid token payload");
+  }
+
+  // Narrow the type safely
+  const { userId, email } = decoded as Partial<JwtUserPayload>;
+
+  if (typeof userId !== "number" || typeof email !== "string") {
+    throw new Error("Malformed token payload");
+  }
+
+  return { userId, email };
 }

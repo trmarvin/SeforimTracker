@@ -5,6 +5,8 @@ dist/
 # Env
 .env
 .env.*
+server/.env
+client/.env
 
 # Logs
 npm-debug.log*
