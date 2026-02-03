@@ -21,7 +21,7 @@ export function verifyToken(token: string): JwtUserPayload {
   // Narrow the type safely
   const { userId, email } = decoded as Partial<JwtUserPayload>;
 
-  if (typeof userId !== "number" || typeof email !== "string") {
+  if (typeof userId !== "string" || typeof email !== "string") {
     throw new Error("Malformed token payload");
   }
 

@@ -1,16 +1,11 @@
 import type { Request, Response } from "express";
 import { hashPassword, verifyPassword } from "../utils/password";
 import { signToken } from "../utils/jwt";
-
-// temp fake db
-const users: Array<{
-  id: number;
-  email: string;
-  name: string;
-  passwordHash: string;
-}> = [];
-
-let nextUserId = 1;
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+} from "../models/user.model";
 
 export async function register(req: Request, res: Response) {
   const { email, password, name } = req.body ?? {};
@@ -21,21 +16,23 @@ export async function register(req: Request, res: Response) {
       .json({ error: "Email, password, and name are required" });
   }
 
-  const exists = users.some((u) => u.email === email);
+  const normalizedEmail = String(email).toLowerCase().trim();
+  const normalizedName = String(name).trim();
+
+  const exists = await findUserByEmail(normalizedEmail);
   if (exists) {
     return res.status(400).json({ error: "Email already in use" });
   }
 
-  const passwordHash = await hashPassword(password);
+  const passwordHash = await hashPassword(String(password));
 
-  const user = { id: nextUserId++, email, name, passwordHash };
-  users.push(user);
+  const user = await createUser(normalizedEmail, normalizedName, passwordHash);
 
   const token = signToken({ userId: user.id, email: user.email });
 
   return res.status(201).json({
     token,
-    user: { id: user.id, email: user.email, name: user.name },
+    user, // {id, email, name}
   });
 }
 
@@ -46,12 +43,14 @@ export async function login(req: Request, res: Response) {
     return res.status(400).json({ error: "Email and password are required" });
   }
 
-  const user = users.find((u) => u.email === email);
+  const normalizedEmail = String(email).toLowerCase().trim();
+
+  const user = await findUserByEmail(normalizedEmail);
   if (!user) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
 
-  const ok = await verifyPassword(password, user.passwordHash);
+  const ok = await verifyPassword(String(password), user.password_hash);
   if (!ok) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
@@ -60,21 +59,20 @@ export async function login(req: Request, res: Response) {
 
   return res.status(200).json({
     token,
-    user: { id: user.id, email: user.email },
+    user: { id: user.id, email: user.email, name: user.name },
   });
 }
 
 export async function me(req: Request, res: Response) {
-  const payload = (req as any).user as
-    | { userId: number; email: string }
-    | undefined;
-  if (!payload) return res.status(500).json({ error: "Auth payload missing" });
+  // ✅ no `as any` — this relies on your express.d.ts augmentation
+  if (!req.user) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
-  const user = users.find((u) => u.id === payload.userId);
+  const user = await findUserById(req.user.userId);
 
+  // If user was deleted, still return token identity (handy for debugging)
   return res.status(200).json({
-    user: user
-      ? { id: user.id, email: user.email, name: user.name }
-      : { id: payload.userId, email: payload.email },
+    user: user ?? { id: req.user.userId, email: req.user.email },
   });
 }
