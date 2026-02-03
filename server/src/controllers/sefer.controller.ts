@@ -41,3 +41,5 @@ export async function searchSeforimHandler(req: Request, res: Response) {
   const seforim = await searchSeforim(q, 25);
   return res.status(200).json({ seforim });
 }
+
+export const listSeforimHandler = searchSeforimHandler;
