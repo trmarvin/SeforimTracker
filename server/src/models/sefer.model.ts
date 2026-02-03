@@ -21,13 +21,13 @@ export type SeferRow = {
 
 export async function createSefer(input: {
   title: string;
-  title_he?: string;
-  author?: string;
-  author_he?: string;
-  genre?: string;
-  description?: string;
-  description_he?: string;
-  cover_image?: string;
+  title_he?: string | null;
+  author?: string | null;
+  author_he?: string | null;
+  genre?: string | null;
+  description?: string | null;
+  description_he?: string | null;
+  cover_image?: string | null;
 }): Promise<SeferRow> {
   const {
     title,
