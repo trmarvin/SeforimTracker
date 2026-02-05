@@ -77,7 +77,7 @@ export async function updateLibraryItemHandler(req: Request, res: Response) {
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
   // req.params.id should be string, but we normalize anyway to satisfy TS
-  const itemId = toTrimmedString((req.params as any).id);
+  const itemId = toTrimmedString(req.params.itemId);
   if (!itemId) {
     return res.status(400).json({ error: "itemId is required" });
   }
@@ -119,7 +119,7 @@ export async function updateLibraryItemHandler(req: Request, res: Response) {
 export async function deleteLibraryItemHandler(req: Request, res: Response) {
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-  const itemId = toTrimmedString((req.params as any).id);
+  const itemId = toTrimmedString(req.params.itemId);
   if (!itemId) {
     return res.status(400).json({ error: "itemId is required" });
   }

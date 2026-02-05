@@ -64,6 +64,7 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function me(req: Request, res: Response) {
+  console.log("ME HIT", req.user);
   // ✅ no `as any` — this relies on your express.d.ts augmentation
   if (!req.user) {
     return res.status(401).json({ error: "Unauthorized" });
