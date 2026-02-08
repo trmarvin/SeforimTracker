@@ -12,10 +12,6 @@ function pgIsUniqueViolation(err: unknown) {
   );
 }
 
-/**
- * Safely normalize unknown inputs to a trimmed string (or undefined).
- * Handles string | string[] | unknown.
- */
 function toTrimmedString(value: unknown): string | undefined {
   if (typeof value === "string") {
     const v = value.trim();
