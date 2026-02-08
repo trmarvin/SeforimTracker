@@ -45,7 +45,9 @@ export default function LibraryPage() {
         }}
       >
         <h1>My Library</h1>
-        <button onClick={() => dispatch(logout())}>Logout</button>
+        <button type="button" onClick={() => dispatch(logout())}>
+          Logout
+        </button>
       </div>
 
       {status === "loading" && <p>Loading…</p>}
@@ -107,6 +109,7 @@ export default function LibraryPage() {
                     </select>
 
                     <button
+                      type="button"
                       onClick={() => {
                         if (!token) return;
                         dispatch(
@@ -129,6 +132,11 @@ export default function LibraryPage() {
                         [it.id]: e.target.value,
                       }))
                     }
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.stopPropagation();
+                      }
+                    }}
                     onBlur={() => {
                       if (!token) return;
                       const notes = (

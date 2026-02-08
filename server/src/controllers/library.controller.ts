@@ -52,8 +52,11 @@ export async function addToLibraryHandler(req: Request, res: Response) {
   if (notes) payload.notes = notes;
 
   try {
-    const item = await addToLibrary(payload);
-    return res.status(201).json({ item });
+    await addToLibrary(payload);
+
+    // IMPORTANT: return the full library view, not just the new item
+    const items = await listLibrary(req.user.userId);
+    return res.status(201).json({ items });
   } catch (err) {
     if (pgIsUniqueViolation(err)) {
       return res.status(409).json({ error: "Sefer already in library" });
@@ -72,7 +75,6 @@ export async function listLibraryHandler(req: Request, res: Response) {
 export async function updateLibraryItemHandler(req: Request, res: Response) {
   if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-  // req.params.id should be string, but we normalize anyway to satisfy TS
   const itemId = toTrimmedString(req.params.itemId);
   if (!itemId) {
     return res.status(400).json({ error: "itemId is required" });
@@ -97,7 +99,6 @@ export async function updateLibraryItemHandler(req: Request, res: Response) {
 
   if (status) payload.status = status;
 
-  // notes can be string OR explicit null (to clear). If undefined, omit it.
   if (body.notes === null) {
     payload.notes = null;
   } else {
@@ -109,7 +110,9 @@ export async function updateLibraryItemHandler(req: Request, res: Response) {
 
   if (!updated) return res.status(404).json({ error: "Not found" });
 
-  return res.status(200).json({ item: updated });
+  // IMPORTANT: return the full library view (with sefer join), not just the updated row
+  const items = await listLibrary(req.user.userId);
+  return res.status(200).json({ items });
 }
 
 export async function deleteLibraryItemHandler(req: Request, res: Response) {
@@ -120,9 +123,13 @@ export async function deleteLibraryItemHandler(req: Request, res: Response) {
     return res.status(400).json({ error: "itemId is required" });
   }
 
-  const ok = await deleteLibraryItem({ userId: req.user.userId, itemId });
+  const deleted = await deleteLibraryItem({
+    userId: req.user.userId,
+    itemId,
+  });
 
-  if (!ok) return res.status(404).json({ error: "Not found" });
+  if (!deleted) return res.status(404).json({ error: "Not found" });
 
-  return res.status(204).send();
+  const items = await listLibrary(req.user.userId);
+  return res.status(200).json({ items });
 }
