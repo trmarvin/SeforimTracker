@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { selectToken } from "../features/auth/authSlice";
-import { listSeforimApi, type Sefer } from "../api/seforim";
+import { listSeforimApi, type Sefer, deleteSeferApi } from "../api/seforim";
 import { addToLibraryApi } from "../api/library";
 
 export default function SeforimPage() {
@@ -13,6 +13,7 @@ export default function SeforimPage() {
   const [seforim, setSeforim] = useState<Sefer[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -36,6 +37,25 @@ export default function SeforimPage() {
       setError(e?.message ?? "Failed to add to library");
     } finally {
       setAddingId(null);
+    }
+  }
+
+  async function handleDelete(seferId: string) {
+    if (!token) return;
+    const ok = confirm("Delete this sefer from the database?");
+    if (!ok) return;
+
+    setDeletingId(seferId);
+    setError(null);
+
+    try {
+      await deleteSeferApi(token, seferId);
+      // remove from UI (simple refetch or local filter)
+      setSeforim((prev) => prev.filter((s) => s.id !== seferId));
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to delete sefer");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -78,6 +98,7 @@ export default function SeforimPage() {
                   {s.author_he ? ` / ${s.author_he}` : ""}
                   {s.genre ? ` • ${s.genre}` : ""}
                 </div>
+                <Link to={`/seforim/${s.id}/edit`}>Edit</Link>
               </div>
 
               <div>
@@ -87,6 +108,13 @@ export default function SeforimPage() {
                   disabled={!token || addingId === s.id}
                 >
                   {addingId === s.id ? "Adding..." : "Add to my library"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(s.id)}
+                  disabled={deletingId === s.id}
+                >
+                  {deletingId === s.id ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </li>

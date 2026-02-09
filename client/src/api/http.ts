@@ -40,7 +40,12 @@ export async function apiRequest<T>(
 
   if (!res.ok) {
     const message =
-      payload?.error?.message || payload?.message || "Request failed";
+      (typeof payload?.error === "string" && payload.error) ||
+      payload?.error?.message ||
+      payload?.message ||
+      payload?.error ||
+      "Request failed";
+
     throw new ApiError(message, res.status, payload);
   }
 

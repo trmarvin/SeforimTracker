@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import LibraryPage from "./pages/LibraryPage";
 import SeforimPage from "./pages/SeforimPage";
 import SeforimNewPage from "./pages/SeforimNewPage";
+import SeforimEditPage from "./pages/SeforimEditPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAppSelector(selectToken);
@@ -37,6 +38,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <SeforimNewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seforim/:seferId/edit"
+          element={
+            <ProtectedRoute>
+              <SeforimEditPage />
             </ProtectedRoute>
           }
         />
