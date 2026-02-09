@@ -31,10 +31,40 @@ export default function LibraryPage() {
   // local draft notes so typing doesn't spam PUT requests
   const [draftNotes, setDraftNotes] = useState<Record<string, string>>({});
 
+  const [statusFilter, setStatusFilter] = useState<LibraryStatus | "all">(
+    "all",
+  );
+  const [query, setQuery] = useState("");
+
   useEffect(() => {
     if (!token) return;
     dispatch(fetchLibraryThunk(token));
   }, [token, dispatch]);
+
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredItems = items.filter((it) => {
+    if (statusFilter !== "all" && it.status !== statusFilter) return false;
+    if (!normalizedQuery) return true;
+
+    const s = it.sefer;
+
+    const haystack = [
+      s.title,
+      s.title_he ?? "",
+      s.author ?? "",
+      s.author_he ?? "",
+      s.genre ?? "",
+      it.notes ?? "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return haystack.includes(normalizedQuery);
+  });
+
+  const totalCount = items.length;
+  const filteredCount = filteredItems.length;
 
   return (
     <div style={{ padding: 24, fontFamily: "system-ui", maxWidth: 900 }}>
@@ -51,6 +81,52 @@ export default function LibraryPage() {
         </button>
       </div>
 
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          margin: "12px 0",
+        }}
+      >
+        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          Status:
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+          >
+            <option value="all">All</option>
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search title, author, notes…"
+          style={{ flex: 1, minWidth: 240 }}
+        />
+
+        <button
+          type="button"
+          onClick={() => {
+            setStatusFilter("all");
+            setQuery("");
+          }}
+        >
+          Clear
+        </button>
+        <p style={{ opacity: 0.75, margin: "8px 0" }}>
+          {filteredCount === totalCount
+            ? `Showing all ${totalCount}`
+            : `Showing ${filteredCount} of ${totalCount}`}
+        </p>
+      </div>
+
       <div style={{ display: "flex", gap: 8 }}>
         <Link to="/seforim">Browse seforim</Link>
       </div>
@@ -58,11 +134,11 @@ export default function LibraryPage() {
       {status === "loading" && <p>Loading…</p>}
       {error && <p style={{ color: "crimson" }}>{error}</p>}
 
-      {status !== "loading" && !error && items.length === 0 ? (
-        <p>No items yet.</p>
+      {status !== "loading" && !error && filteredItems.length === 0 ? (
+        <p>No imatching items.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {items.map((it) => {
+          {filteredItems.map((it) => {
             const sefer = it.sefer;
             const currentDraft = draftNotes[it.id] ?? it.notes ?? "";
 
