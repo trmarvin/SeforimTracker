@@ -21,6 +21,8 @@ export default function SeforimNewPage() {
   const [dupId, setDupId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [alsoAddToLibrary, setAlsoAddToLibrary] = useState(true);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!token) return;
@@ -40,9 +42,12 @@ export default function SeforimNewPage() {
         description_he: descriptionHe.trim() || null,
       });
 
-      // Nice UX: after creating a sefer, add it to the user’s library automatically
-      await addToLibraryApi(token, { seferId: res.sefer.id });
-      navigate("/"); // back to library
+      if (alsoAddToLibrary) {
+        await addToLibraryApi(token, { seferId: res.sefer.id });
+        navigate("/"); // back to library
+      } else {
+        navigate("/seforim"); // back to list
+      }
     } catch (e: any) {
       // If your apiRequest throws with status/body, handle it. Otherwise we’ll do a simpler message.
       // Common pattern: e.status and e.data (depends on your http.ts)
@@ -86,7 +91,7 @@ export default function SeforimNewPage() {
       {error && (
         <div style={{ color: "crimson", marginBottom: 12 }}>
           <p>{error}</p>
-          {dupId && (
+          {dupId && alsoAddToLibrary && (
             <button
               type="button"
               onClick={addExistingToLibrary}
@@ -149,6 +154,15 @@ export default function SeforimNewPage() {
             rows={3}
             dir="rtl"
           />
+        </label>
+
+        <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={alsoAddToLibrary}
+            onChange={(e) => setAlsoAddToLibrary(e.target.checked)}
+          />
+          Also add to my library
         </label>
 
         <button type="submit" disabled={isSaving || !title.trim()}>
