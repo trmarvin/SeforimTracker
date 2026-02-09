@@ -19,6 +19,23 @@ export type SeferRow = {
 // - author entity
 // - sefer-to-sefer relationships (commentary, response, etc.)
 
+function norm(s: string) {
+  return s.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+// MVP Hebrew normalization: trim + collapse spaces.
+// (We *could* add niqqud stripping later.)
+function normHe(s: string) {
+  return s.trim().replace(/\s+/g, " ");
+}
+
+export class DuplicateSeferError extends Error {
+  constructor(public existingId: string) {
+    super("Sefer already exists");
+    this.name = "DuplicateSeferError";
+  }
+}
+
 export async function createSefer(input: {
   title: string;
   title_he?: string | null;
@@ -39,6 +56,16 @@ export async function createSefer(input: {
     description_he,
     cover_image,
   } = input;
+
+  const dup = await findDuplicateSefer({
+    title,
+    title_he: title_he ?? null,
+    author: author ?? null,
+  });
+
+  if (dup) {
+    throw new DuplicateSeferError(dup.id);
+  }
 
   const { rows } = await pool.query<SeferRow>(
     `INSERT INTO "Sefer"
@@ -62,6 +89,49 @@ export async function createSefer(input: {
   const sefer = rows[0];
   if (!sefer) throw new Error("Failed to create sefer");
   return sefer;
+}
+
+async function findDuplicateSefer(input: {
+  title: string;
+  title_he?: string | null;
+  author?: string | null;
+}): Promise<{ id: string } | null> {
+  const titleHe = input.title_he ? normHe(input.title_he) : null;
+
+  // 1) Prefer Hebrew title when present
+  if (titleHe) {
+    const { rows } = await pool.query<{ id: string }>(
+      `
+      SELECT id
+      FROM "Sefer"
+      WHERE title_he IS NOT NULL
+        AND trim(regexp_replace(title_he, '\\s+', ' ', 'g')) = $1
+      LIMIT 1
+      `,
+      [titleHe],
+    );
+    return rows[0] ?? null;
+  }
+
+  // 2) Fallback: normalized English title + author (author optional but recommended)
+  const title = norm(input.title);
+  const author = input.author ? norm(input.author) : null;
+
+  const { rows } = await pool.query<{ id: string }>(
+    `
+    SELECT id
+    FROM "Sefer"
+    WHERE lower(trim(regexp_replace(title, '\\s+', ' ', 'g'))) = $1
+      AND (
+        ($2::text IS NULL AND author IS NULL)
+        OR lower(trim(regexp_replace(coalesce(author,''), '\\s+', ' ', 'g'))) = $2
+      )
+    LIMIT 1
+    `,
+    [title, author],
+  );
+
+  return rows[0] ?? null;
 }
 
 export async function searchSeforim(

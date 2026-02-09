@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { createSefer, searchSeforim } from "../models/sefer.model";
+import {
+  createSefer,
+  searchSeforim,
+  DuplicateSeferError,
+} from "../models/sefer.model";
 
 export async function createSeferHandler(req: Request, res: Response) {
   const body = (req.body ?? {}) as Record<string, unknown>;
@@ -18,22 +22,37 @@ export async function createSeferHandler(req: Request, res: Response) {
   const cover_image =
     typeof body.cover_image === "string" ? body.cover_image : undefined;
 
+  // ✅ validation stays OUTSIDE try
   if (!title || title.trim().length === 0) {
     return res.status(400).json({ error: "Title is required" });
   }
 
-  const sefer = await createSefer({
-    title: title.trim(),
-    title_he: title_he ? title_he.trim() : null,
-    author: author ? author.trim() : null,
-    author_he: author_he ? author_he.trim() : null,
-    genre: genre ? genre.trim() : null,
-    description: description ? description.trim() : null,
-    description_he: description_he ? description_he.trim() : null,
-    cover_image: cover_image ? cover_image.trim() : null,
-  });
+  try {
+    // ✅ createSefer goes INSIDE try
+    const sefer = await createSefer({
+      title: title.trim(),
+      title_he: title_he ? title_he.trim() : null,
+      author: author ? author.trim() : null,
+      author_he: author_he ? author_he.trim() : null,
+      genre: genre ? genre.trim() : null,
+      description: description ? description.trim() : null,
+      description_he: description_he ? description_he.trim() : null,
+      cover_image: cover_image ? cover_image.trim() : null,
+    });
 
-  return res.status(201).json({ sefer });
+    return res.status(201).json({ sefer });
+  } catch (err) {
+    // ✅ domain error handled here
+    if (err instanceof DuplicateSeferError) {
+      return res.status(409).json({
+        error: "Sefer already exists",
+        existingSeferId: err.existingId,
+      });
+    }
+
+    // anything else is a real server error
+    throw err;
+  }
 }
 
 export async function searchSeforimHandler(req: Request, res: Response) {

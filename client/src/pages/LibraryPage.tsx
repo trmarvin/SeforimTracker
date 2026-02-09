@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout, selectToken } from "../features/auth/authSlice";
 import {
@@ -48,6 +49,10 @@ export default function LibraryPage() {
         <button type="button" onClick={() => dispatch(logout())}>
           Logout
         </button>
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <Link to="/seforim">Browse seforim</Link>
       </div>
 
       {status === "loading" && <p>Loading…</p>}

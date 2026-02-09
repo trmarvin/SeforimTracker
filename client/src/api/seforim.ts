@@ -33,7 +33,7 @@ export type CreateSeferInput = {
 };
 
 export function createSeferApi(token: string, body: CreateSeferInput) {
-  return apiRequest<ListSeforimResponse>("/seforim", {
+  return apiRequest<{ sefer: Sefer }>("/seforim", {
     method: "POST",
     token,
     body,

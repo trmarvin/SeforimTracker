@@ -3,6 +3,8 @@ import { useAppSelector } from "./store/hooks";
 import { selectToken } from "./features/auth/authSlice";
 import LoginPage from "./pages/LoginPage";
 import LibraryPage from "./pages/LibraryPage";
+import SeforimPage from "./pages/SeforimPage";
+import SeforimNewPage from "./pages/SeforimNewPage";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAppSelector(selectToken);
@@ -19,6 +21,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <LibraryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seforim"
+          element={
+            <ProtectedRoute>
+              <SeforimPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/seforim/new"
+          element={
+            <ProtectedRoute>
+              <SeforimNewPage />
             </ProtectedRoute>
           }
         />
