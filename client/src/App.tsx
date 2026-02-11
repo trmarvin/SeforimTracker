@@ -7,6 +7,7 @@ import LibraryPage from "./pages/LibraryPage";
 import SeforimPage from "./pages/SeforimPage";
 import SeforimNewPage from "./pages/SeforimNewPage";
 import SeforimEditPage from "./pages/SeforimEditPage";
+import { AppShell } from "./components/AppShell";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = useAppSelector(selectToken);
@@ -17,38 +18,60 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <AppShell>
+              <LandingPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <AppShell>
+              <LoginPage />
+            </AppShell>
+          }
+        />
         <Route
           path="/library"
           element={
-            <ProtectedRoute>
-              <LibraryPage />
-            </ProtectedRoute>
+            <AppShell>
+              <ProtectedRoute>
+                <LibraryPage />
+              </ProtectedRoute>
+            </AppShell>
           }
         />
         <Route
           path="/seforim"
           element={
-            <ProtectedRoute>
-              <SeforimPage />
-            </ProtectedRoute>
+            <AppShell>
+              <ProtectedRoute>
+                <SeforimPage />
+              </ProtectedRoute>
+            </AppShell>
           }
         />
         <Route
           path="/seforim/new"
           element={
-            <ProtectedRoute>
-              <SeforimNewPage />
-            </ProtectedRoute>
+            <AppShell>
+              <ProtectedRoute>
+                <SeforimNewPage />
+              </ProtectedRoute>
+            </AppShell>
           }
         />
         <Route
           path="/seforim/:seferId/edit"
           element={
-            <ProtectedRoute>
-              <SeforimEditPage />
-            </ProtectedRoute>
+            <AppShell>
+              <ProtectedRoute>
+                <SeforimEditPage />
+              </ProtectedRoute>
+            </AppShell>
           }
         />
       </Routes>
