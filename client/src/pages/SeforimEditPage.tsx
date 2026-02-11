@@ -4,6 +4,7 @@ import { useAppSelector } from "../store/hooks";
 import { selectToken } from "../features/auth/authSlice";
 import { getSeferApi, updateSeferApi } from "../api/seforim";
 import { ApiError } from "../api/http";
+import { SeferAliasesPanel } from "../components/SeferAliasesPanel";
 
 export default function SeforimEditPage() {
   const token = useAppSelector(selectToken);
@@ -187,6 +188,10 @@ export default function SeforimEditPage() {
               {isSaving ? "Saving..." : "Save changes"}
             </button>
           </form>
+
+          <div style={{ marginTop: 24 }}>
+            <SeferAliasesPanel seferId={seferId} />
+          </div>
         </>
       )}
     </div>

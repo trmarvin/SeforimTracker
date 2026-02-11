@@ -20,6 +20,23 @@ app.use(
 
 app.use(express.json());
 
+app.disable("etag");
+
+app.use((req, res, next) => {
+  // apply to API calls (anything with Authorization OR your API paths)
+  if (req.header("Authorization") || req.path.includes("/aliases")) {
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+    res.setHeader("Vary", "Authorization");
+  }
+  next();
+});
+
 app.use("/auth", authRoutes);
 app.use("/health", healthRouter);
 app.use("/seforim", seferRouter);
