@@ -97,6 +97,49 @@ export async function createSeferAlias(req: Request, res: Response) {
   }
 }
 
+export async function bulkSeferAliases(req: Request, res: Response) {
+  const userId = req.user?.userId as string | undefined;
+  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const seferIdsRaw = body.seferIds;
+
+  if (!Array.isArray(seferIdsRaw)) {
+    return res.status(400).json({ error: "seferIds must be an array" });
+  }
+
+  // Validate UUIDs + dedupe
+  const seferIds = Array.from(
+    new Set(
+      seferIdsRaw
+        .map((x) => (typeof x === "string" ? x : ""))
+        .filter((x) => isUuid(x)),
+    ),
+  );
+
+  if (seferIds.length === 0) {
+    return res.json({ aliasesBySeferId: {} });
+  }
+
+  const result = await pool.query(
+    `
+    SELECT id, sefer_id, type, value, normalized, language, created_at
+    FROM sefer_aliases
+    WHERE sefer_id = ANY($1::uuid[])
+      AND (user_id = $2 OR user_id IS NULL)
+    ORDER BY sefer_id, type, value
+    `,
+    [seferIds, userId],
+  );
+
+  const aliasesBySeferId: Record<string, any[]> = {};
+  for (const row of result.rows) {
+    (aliasesBySeferId[row.sefer_id] ??= []).push(row);
+  }
+
+  return res.json({ aliasesBySeferId });
+}
+
 export async function deleteSeferAlias(req: Request, res: Response) {
   const seferId = String((req.params as any).id);
   const aliasIdRaw = String((req.params as any).aliasId);

@@ -10,6 +10,11 @@ import {
   updateLibraryItemThunk,
   deleteLibraryItemThunk,
 } from "../features/library/librarySlice";
+import {
+  fetchAliasesBulkThunk,
+  selectAliasesBySeferId,
+} from "../features/seferAliases/seferAliasesSlice";
+import { normalizeSearch } from "../utils/normalizeSearch";
 import type { LibraryStatus } from "../api/library";
 
 const STATUS_OPTIONS: { value: LibraryStatus; label: string }[] = [
@@ -36,12 +41,21 @@ export default function LibraryPage() {
   );
   const [query, setQuery] = useState("");
 
+  const aliasesBySeferId = useAppSelector(selectAliasesBySeferId);
+
+  useEffect(() => {
+    const seferIds = Array.from(new Set(items.map((it) => it.sefer.id)));
+    if (seferIds.length) {
+      dispatch(fetchAliasesBulkThunk({ seferIds }));
+    }
+  }, [dispatch, items]);
+
   useEffect(() => {
     if (!token) return;
     dispatch(fetchLibraryThunk(token));
   }, [token, dispatch]);
 
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = normalizeSearch(query);
 
   const filteredItems = items.filter((it) => {
     if (statusFilter !== "all" && it.status !== statusFilter) return false;
@@ -49,16 +63,21 @@ export default function LibraryPage() {
 
     const s = it.sefer;
 
-    const haystack = [
-      s.title,
-      s.title_he ?? "",
-      s.author ?? "",
-      s.author_he ?? "",
-      s.genre ?? "",
-      it.notes ?? "",
-    ]
-      .join(" ")
-      .toLowerCase();
+    const aliasText = (aliasesBySeferId[s.id] ?? [])
+      .map((a) => a.value)
+      .join(" ");
+
+    const haystack = normalizeSearch(
+      [
+        s.title,
+        s.title_he ?? "",
+        s.author ?? "",
+        s.author_he ?? "",
+        s.genre ?? "",
+        it.notes ?? "",
+        aliasText,
+      ].join(" "),
+    );
 
     return haystack.includes(normalizedQuery);
   });
@@ -135,7 +154,7 @@ export default function LibraryPage() {
       {error && <p style={{ color: "crimson" }}>{error}</p>}
 
       {status !== "loading" && !error && filteredItems.length === 0 ? (
-        <p>No imatching items.</p>
+        <p>No matching items.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {filteredItems.map((it) => {

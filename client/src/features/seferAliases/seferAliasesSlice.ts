@@ -5,6 +5,7 @@ const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 export type AliasType = "title" | "author" | "abbr" | "other";
 export type AliasLang = "en" | "he" | "mixed" | null;
+export type AliasesBySeferId = Record<string, SeferAlias[]>;
 
 export type SeferAlias = {
   id: number;
@@ -78,16 +79,49 @@ export const deleteAliasThunk = createAsyncThunk<
   return { seferId, aliasId };
 });
 
+export const fetchAliasesBulkThunk = createAsyncThunk<
+  { aliasesBySeferId: Record<string, SeferAlias[]> },
+  { seferIds: string[] },
+  { state: RootState }
+>("seferAliases/bulk", async ({ seferIds }, { getState }) => {
+  const token = requireToken(getState());
+
+  const res = await fetch(`${API_BASE}/seforim/aliases/bulk`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ seferIds }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Bulk aliases fetch failed: ${res.status} ${text}`);
+  }
+
+  return (await res.json()) as {
+    aliasesBySeferId: Record<string, SeferAlias[]>;
+  };
+});
+
 type State = {
   bySeferId: Record<string, SeferAlias[]>;
   loadingBySeferId: Record<string, boolean>;
   errorBySeferId: Record<string, string | null>;
+
+  bulkBySeferId: Record<string, SeferAlias[]>;
+  bulkLoading: boolean;
+  bulkError: string | null;
 };
 
 const initialState: State = {
   bySeferId: {},
   loadingBySeferId: {},
   errorBySeferId: {},
+  bulkBySeferId: {} as Record<string, SeferAlias[]>,
+  bulkLoading: false,
+  bulkError: null as string | null,
 };
 
 const slice = createSlice({
@@ -121,6 +155,19 @@ const slice = createSlice({
         state.bySeferId[seferId] = (state.bySeferId[seferId] ?? []).filter(
           (a) => a.id !== aliasId,
         );
+      })
+      .addCase(fetchAliasesBulkThunk.pending, (state) => {
+        state.bulkLoading = true;
+        state.bulkError = null;
+      })
+      .addCase(fetchAliasesBulkThunk.fulfilled, (state, action) => {
+        state.bulkLoading = false;
+        state.bulkBySeferId = action.payload.aliasesBySeferId;
+      })
+      .addCase(fetchAliasesBulkThunk.rejected, (state, action) => {
+        state.bulkLoading = false;
+        state.bulkError =
+          action.error.message ?? "Failed to load aliases (bulk)";
       });
   },
 });
@@ -133,3 +180,5 @@ export const selectAliasesLoading = (state: RootState, seferId: string) =>
   !!state.seferAliases.loadingBySeferId[seferId];
 export const selectAliasesError = (state: RootState, seferId: string) =>
   state.seferAliases.errorBySeferId[seferId] ?? null;
+export const selectAliasesBySeferId = (state: RootState) =>
+  state.seferAliases.bulkBySeferId;

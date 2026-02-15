@@ -7,6 +7,7 @@ import { healthRouter } from "./routes/health.routes";
 import { seferRouter } from "./routes/sefer.routes";
 import { libraryRouter } from "./routes/library.routes";
 import seferAliasesRoutes from "./routes/seferAliases.routes";
+import readingLogsRoutes from "./routes/readingLogs.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/health", healthRouter);
 app.use("/seforim", seferRouter);
 app.use("/library", libraryRouter);
 app.use("/seforim", seferAliasesRoutes);
+app.use("/seforim", readingLogsRoutes);
 
 // basic 404 handler
 app.use((_req, res) => {
