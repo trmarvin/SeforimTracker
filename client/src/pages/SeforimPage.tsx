@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { useAppSelector } from "../store/hooks";
 import { selectToken } from "../features/auth/authSlice";
 import { listSeforimApi, type Sefer, deleteSeferApi } from "../api/seforim";
 import { addToLibraryApi } from "../api/library";
 
 export default function SeforimPage() {
-  const dispatch = useAppDispatch(); // may not use yet, but fine
   const token = useAppSelector(selectToken);
   const navigate = useNavigate();
 

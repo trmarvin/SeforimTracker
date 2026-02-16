@@ -171,19 +171,39 @@ export default function LibraryPage() {
                     display: "flex",
                     justifyContent: "space-between",
                     gap: 12,
+                    alignItems: "flex-start",
                   }}
                 >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 650 }}>
-                      {sefer.title}
-                      {sefer.title_he ? ` / ${sefer.title_he}` : ""}
-                    </div>
-                    <div style={{ opacity: 0.85 }}>
-                      {sefer.author ?? "Unknown author"}
-                      {sefer.author_he ? ` / ${sefer.author_he}` : ""}
-                      {sefer.genre ? ` • ${sefer.genre}` : ""}
+                  {/* LEFT SIDE: cover + text */}
+                  <div style={{ display: "flex", gap: 12, flex: 1 }}>
+                    {sefer.cover_image ? (
+                      <img
+                        src={sefer.cover_image}
+                        alt={sefer.title}
+                        style={{
+                          width: 60,
+                          height: 90,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : null}
+
+                    <div>
+                      <div style={{ fontWeight: 650 }}>
+                        {sefer.title}
+                        {sefer.title_he ? ` / ${sefer.title_he}` : ""}
+                      </div>
+                      <div style={{ opacity: 0.85 }}>
+                        {sefer.author ?? "Unknown author"}
+                        {sefer.author_he ? ` / ${sefer.author_he}` : ""}
+                        {sefer.genre ? ` • ${sefer.genre}` : ""}
+                      </div>
                     </div>
                   </div>
+
+                  {/* RIGHT SIDE: controls (keep your existing code here) */}
 
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 8 }}

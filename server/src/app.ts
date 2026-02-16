@@ -12,10 +12,19 @@ import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
 
+const allowed = (process.env.CORS_ORIGINS ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"],
-    credentials: true,
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // Postman/curl
+      if (allowed.includes(origin)) return cb(null, true);
+      return cb(new Error("Not allowed by CORS"));
+    },
+    credentials: false, // you're using Bearer token, not cookies
   }),
 );
 
