@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { logout, selectToken } from "../features/auth/authSlice";
 import {
@@ -192,7 +192,9 @@ export default function LibraryPage() {
 
                     <div>
                       <div style={{ fontWeight: 650 }}>
-                        {sefer.title}
+                        <NavLink to={`/seforim/${sefer.id}`}>
+                          {sefer.title}
+                        </NavLink>
                         {sefer.title_he ? ` / ${sefer.title_he}` : ""}
                       </div>
                       <div style={{ opacity: 0.85 }}>

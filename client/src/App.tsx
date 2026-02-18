@@ -7,6 +7,7 @@ import LibraryPage from "./pages/LibraryPage";
 import SeforimPage from "./pages/SeforimPage";
 import SeforimNewPage from "./pages/SeforimNewPage";
 import SeforimEditPage from "./pages/SeforimEditPage";
+import SeferPage from "./pages/SeferPage";
 import { AppShell } from "./components/AppShell";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -54,6 +55,17 @@ export default function App() {
             </AppShell>
           }
         />
+        <Route
+          path="/seforim/:seferId"
+          element={
+            <AppShell>
+              <ProtectedRoute>
+                <SeferPage />
+              </ProtectedRoute>
+            </AppShell>
+          }
+        />
+
         <Route
           path="/seforim/new"
           element={

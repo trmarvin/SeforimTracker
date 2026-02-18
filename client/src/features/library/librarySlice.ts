@@ -7,16 +7,20 @@ import {
   deleteLibraryItemApi,
 } from "../../api/library";
 
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
+
 type LibraryState = {
   items: LibraryItem[];
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  seferById: Record<string, any>;
 };
 
 const initialState: LibraryState = {
   items: [],
   status: "idle",
   error: null,
+  seferById: {},
 };
 
 export const fetchLibraryThunk = createAsyncThunk(
@@ -27,6 +31,31 @@ export const fetchLibraryThunk = createAsyncThunk(
       return res.items;
     } catch (e: any) {
       return rejectWithValue(e?.message ?? "Failed to load library");
+    }
+  },
+);
+
+export const fetchSeferByIdThunk = createAsyncThunk(
+  "library/fetchSeferById",
+  async (
+    { token, seferId }: { token: string; seferId: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const res = await fetch(`${API_BASE}/seforim/${seferId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Sefer fetch failed: ${res.status} ${text}`);
+      }
+
+      const data = await res.json();
+      // depending on your backend response shape
+      return (data.sefer ?? data) as any;
+    } catch (e: any) {
+      return rejectWithValue(e?.message ?? "Failed to load sefer");
     }
   },
 );
@@ -84,6 +113,10 @@ const librarySlice = createSlice({
         state.status = "failed";
         state.error = (action.payload as string) ?? "Failed to load library";
       })
+      .addCase(fetchSeferByIdThunk.fulfilled, (state, action) => {
+        const sefer = action.payload;
+        state.seferById[sefer.id] = sefer;
+      })
       .addCase(updateLibraryItemThunk.fulfilled, (state, action) => {
         state.items = action.payload;
       })
@@ -96,5 +129,8 @@ const librarySlice = createSlice({
 export const selectLibraryItems = (state: RootState) => state.library.items;
 export const selectLibraryStatus = (state: RootState) => state.library.status;
 export const selectLibraryError = (state: RootState) => state.library.error;
+export const selectSeferById = (state: RootState, seferId: string) =>
+  state.library.seferById[seferId] ??
+  state.library.items.find((it) => it.sefer.id === seferId)?.sefer; // adjust if your shape differs
 
 export default librarySlice.reducer;

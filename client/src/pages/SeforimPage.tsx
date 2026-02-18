@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, NavLink } from "react-router-dom";
 import { useAppSelector } from "../store/hooks";
 import { selectToken } from "../features/auth/authSlice";
 import { listSeforimApi, type Sefer, deleteSeferApi } from "../api/seforim";
@@ -89,7 +89,7 @@ export default function SeforimPage() {
             >
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 650 }}>
-                  {s.title}
+                  <NavLink to={`/seforim/${s.id}`}>{s.title}</NavLink>
                   {s.title_he ? ` / ${s.title_he}` : ""}
                 </div>
                 <div style={{ opacity: 0.85 }}>
