@@ -190,7 +190,7 @@ export default function SeforimEditPage() {
             </button>
           </form>
 
-          <div>
+          <div style={{ marginTop: 24 }}>
             <ReadingLogPanel seferId={seferId} />
           </div>
 

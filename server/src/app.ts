@@ -20,11 +20,13 @@ const allowed = (process.env.CORS_ORIGINS ?? "")
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin) return cb(null, true); // Postman/curl
+      if (!origin) return cb(null, true); // Postman/curl/mobile apps
       if (allowed.includes(origin)) return cb(null, true);
-      return cb(new Error("Not allowed by CORS"));
+      return cb(new Error(`Not allowed by CORS: ${origin}`));
     },
-    credentials: false, // you're using Bearer token, not cookies
+    credentials: false, // Bearer token auth
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
 

@@ -80,7 +80,9 @@ export async function createReadingLog(req: Request, res: Response) {
   const ref_kind = body.ref_kind;
 
   if (!isRefKind(ref_kind)) {
-    return res.status(400).json({ error: "ref_kind must be 'daf' or 'siman'" });
+    return res
+      .status(400)
+      .json({ error: "ref_kind must be 'daf' | 'siman' | 'perek' | 'shaar'" });
   }
 
   const daf = typeof body.daf === "string" ? body.daf.trim() : null;

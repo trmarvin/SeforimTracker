@@ -1,4 +1,4 @@
-import "express";
+// server/src/types/express-augment.d.ts
 
 declare global {
   namespace Express {
