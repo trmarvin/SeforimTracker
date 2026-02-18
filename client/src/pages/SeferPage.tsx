@@ -171,6 +171,7 @@ function DetailsPanel({
 
           {sefer?.genre && <DetailRow label="Genre">{sefer.genre}</DetailRow>}
         </div>
+        <div style={{ display: "flex", gap: 12 }}></div>
       </div>
 
       <div
@@ -224,14 +225,12 @@ function MyReadingPanel(props: {
       {props.loading ? (
         <div style={{ opacity: 0.7 }}>Loading your reading log…</div>
       ) : null}
-
-      {/* This assumes your ReadingLogPanel takes seferId prop. If it doesn't yet, we’ll adjust. */}
       <ReadingLogPanel seferId={props.seferId} />
     </section>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+/* function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div
       style={{
@@ -245,4 +244,4 @@ function StatCard({ label, value }: { label: string; value: string }) {
       <div style={{ fontSize: 22, fontWeight: 700 }}>{value}</div>
     </div>
   );
-}
+} */
